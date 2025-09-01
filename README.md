@@ -25,4 +25,4 @@
 
 1. Clone este repositório:  
 ```bash
-git clone https://github.com/seu-usuario/audio-scheduler.git
+git clone https://github.com/AtaliasOliveira1/audio-scheduler.git
