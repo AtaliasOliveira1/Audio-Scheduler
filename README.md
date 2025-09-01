@@ -16,7 +16,7 @@
 
 ## 🛠️ Tecnologias
 
-- **Python 3.x**  
+- **Python 3.12**  
 - Bibliotecas utilizadas (exemplos): `pygame` para reprodução de áudio, `tkinter` para interface, `threading` para contagem regressiva  
 
 ---
