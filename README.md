@@ -2,6 +2,8 @@
 
 **Audio Scheduler** é um programa em **Python** para **Windows** que permite agendar a reprodução de áudios e propagandas em intervalos definidos. Ideal para rádios web ou qualquer projeto que precise de automação de áudio eficiente.
 
+![Audio Scheduler](https://i.postimg.cc/d1B9pyXc/audiosheduler.png)
+
 ---
 
 ## ✨ Funcionalidades
