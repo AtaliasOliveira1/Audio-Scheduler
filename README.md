@@ -1,8 +1,8 @@
 # 🎵 Audio Scheduler
 
-**Audio Scheduler** é um programa em **Python** para **Windows** que permite agendar a reprodução de áudios e propagandas em intervalos definidos. Ideal para rádios web ou qualquer projeto que precise de automação de áudio eficiente.
+O **AudioScheduler** é um automatizador e agendador de blocos de áudio desenvolvido em **C#** com interface gráfica (Windows Forms). Ele foi projetado especificamente para automação de rádio, permitindo reproduzir vinhetas, comerciais ou músicas de forma totalmente aleatória e em intervalos de tempo personalizados, enviando o som diretamente para dispositivos de áudio virtuais (como o Voicemeeter).
 
-![Audio Scheduler](https://i.postimg.cc/d1B9pyXc/audiosheduler.png)
+![Audio Scheduler](https://i.postimg.cc/FHxbQCgY/Screenshot-39.png)
 
 ---
 
@@ -18,9 +18,11 @@
 
 ## 🛠️ Tecnologias
 
-- **Python 3.12**  
-- Bibliotecas utilizadas (exemplos): `pygame` para reprodução de áudio, `tkinter` para interface, `threading` para contagem regressiva  
-
+ - Linguagem: C# (.NET 8.0)
+ - Interface Gráfica: Windows Forms (Custom Dark Theme)
+ - Manipulação de Áudio: NAudio (para controle de dispositivos de saída e reprodução de streams)
+ - Banco de Dados: Microsoft.Data.Sqlite (armazenamento leve e local das configurações)
+    
 ---
 
 ## 🚀 Como usar
