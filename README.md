@@ -6,7 +6,7 @@ O **AudioScheduler** é um automatizador e agendador de blocos de áudio desenvo
 
 ---
 
-# Changelog - v1.2.0 📻
+# Changelog - v1.0.1 📻
 
 ## 🚀 Novidades & Recursos
 * **Desligamento Automático do Windows (Opcional):** Adicionada uma nova função nas configurações que permite forçar o desligamento do computador assim que o horário limite da automação for atingido. 
