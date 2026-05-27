@@ -2,24 +2,24 @@
 
 O **AudioScheduler** é um automatizador e agendador de blocos de áudio desenvolvido em **C#** com interface gráfica (Windows Forms). Ele foi projetado especificamente para automação de rádio, permitindo reproduzir vinhetas, comerciais ou músicas de forma totalmente aleatória e em intervalos de tempo personalizados, enviando o som diretamente para dispositivos de áudio virtuais (como o Voicemeeter).
 
-![Audio Scheduler](https://i.postimg.cc/G38fQ86T/Screenshot-40.png)
+![Audio Scheduler](https://i.postimg.cc/zvJdY6Mm/Screenshot-44.png)
 
 ---
 
-# Changelog - v1.0.1 📻
+# Changelog - v1.0.2 📻
 
-## 🚀 Novidades & Recursos
-* **Desligamento Automático do Windows (Opcional):** Adicionada uma nova função nas configurações que permite forçar o desligamento do computador assim que o horário limite da automação for atingido. 
-  * O comando conta com um delay de segurança de **1 minuto (60 segundos)** e fechamento forçado (`shutdown /s /f /t 60`), garantindo que o computador desligue sozinho e economize energia após a transmissão.
+## 🚀 Novidades & Melhorias Visuais
+* **Contador de Áudios Centralizado:** Adicionado um indicador em tempo real mostrando a quantidade exata de arquivos válidos (`.mp3` e `.wav`) encontrados. O contador foi integrado diretamente ao painel **"MONITORAMENTO EM TEMPO REAL"** para melhorar a organização visual.
+* **Leitura Perfeita no Dark Mode:** Corrigida a visibilidade do texto *"Ativar controle automático de horário"*, forçando a cor clara padrão do sistema para eliminar o fundo escuro que dificultava a leitura.
+* **Fila Circular Aleatória Inteligente:** Substituído o sorteio puramente aleatório por um sistema baseado no algoritmo Fisher-Yates. Agora, o programa cria uma lista embaralhada com todas as vinhetas da pasta e toca uma por uma até o final, garantindo que **todos os áudios toquem sem repetição**. Ao chegar na última vinheta, a fila é reembaralhada automaticamente para reiniciar o loop.
 
-## 🛠️ Correções e Ajustes Finos
+## 🛠️ Correções de Comportamento
+* **Sincronização em Tempo Real:** O sistema passou a monitorar a pasta de segundo em segundo. Caso adicione, renomeie ou remova qualquer áudio da pasta com o agendador ligado, a lista e o contador atualizam-se na hora sem travar a transmissão.
+* **Coreção do Início Automático:** Corrigido o bug que iniciava o cronómetro sozinho mesmo com a automação por horário desmarcada. Agora, o programa carrega as configurações em Modo Manual e só liga de forma 100% automática no carregamento se o controle de horário estiver ativo no banco.
+* **Restaurado o Histórico de Execuções:** Corrigido o envio de Logs para a interface. Agora, todas as ações do agendador automático e os acionamentos manuais da cartucheira registam o nome do arquivo e o horário exato do disparo na caixa de histórico.
 
-* **Estabilização dos Logs de Execução:** Substituído o método de escrita do histórico em segundo plano por um Invoke assíncrono seguro (`BeginInvoke`). Isso elimina completamente o congelamento, corte de textos e erros do tipo `Value cannot be null` ao processar eventos.
-* **Painel de Horários Restaurado:** O botão **"Aplicar Horários"** foi reposicionado perfeitamente dentro do grupo de automação, permitindo o reinício correto e seguro da rádio ao atualizar o expediente.
-* **Código Limpo e Otimizado:** Remoção completa de dependências e códigos experimentais de terceiros, mantendo o software leve, rápido e rodando de forma 100% nativa.
-
-## ⚠️ Instruções de Atualização
-Devido à reestruturação da tabela de configurações internas para o novo recurso de desligamento, é necessário **deletar o arquivo antigo `config_radio.db`** da pasta antes de iniciar esta nova versão pela primeira vez. O programa gerará um banco atualizado automaticamente.
+## ⚠️ Instruções de Instalação
+Para que o banco local SQLite se ajuste perfeitamente às validações de inicialização da nova versão, lembre-se de **eliminar o arquivo `config_radio.db` antigo** da pasta antes de executar o novo programa pela primeira vez.
 
 ---
 
