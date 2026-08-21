@@ -17,16 +17,27 @@ namespace AgendadorRadioVisual
         [STAThread]
         static void Main()
         {
-            Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new JanelaPrincipal());
+            // Prevenir múltiplas instâncias do programa
+            bool createdNew;
+            using (System.Threading.Mutex mutex = new System.Threading.Mutex(true, "AudioScheduler_v1.0.5_SingleInstance", out createdNew))
+            {
+                if (!createdNew)
+                {
+                    MessageBox.Show("O AudioScheduler já está em execução! Verifique a barra de tarefas.", "AudioScheduler", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                Application.SetHighDpiMode(HighDpiMode.SystemAware);
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new JanelaPrincipal());
+            }
         }
     }
 
     public class JanelaPrincipal : Form
     {
-        private const string STRING_CONEXAO = "Data Source=config_radio.db";
+        private string STRING_CONEXAO = null!;
 
         // --- API DO WINDOWS (HOTKEYS) ---
         [DllImport("user32.dll")]
@@ -125,7 +136,20 @@ namespace AgendadorRadioVisual
 
         public JanelaPrincipal()
         {
-            this.Text = "AudioScheduler v1.0.3 - by: @ataliasloami";
+            // Configurar caminho do banco de dados para pasta AppData do usuário (tem permissão de escrita)
+            string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string configFolder = Path.Combine(appDataPath, "AudioScheduler");
+            
+            // Criar pasta se não existir
+            if (!Directory.Exists(configFolder))
+            {
+                Directory.CreateDirectory(configFolder);
+            }
+            
+            string dbPath = Path.Combine(configFolder, "config_radio.db");
+            STRING_CONEXAO = $"Data Source={dbPath}";
+
+            this.Text = "AudioScheduler v1.0.5 - by: @ataliasloami";
             this.Size = new Size(1200, 750); 
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -174,7 +198,6 @@ namespace AgendadorRadioVisual
             itemSalvar.ShortcutKeys = Keys.Control | Keys.S;
             itemSalvar.Click += (s, e) => {
                 SalvarConfiguracoesAtuais();
-                AdicionarLog("Configurações salvas com sucesso!");
             };
 
             ToolStripMenuItem itemSair = new ToolStripMenuItem("Sair");
@@ -232,7 +255,7 @@ namespace AgendadorRadioVisual
 
         private void MostrarSobre()
         {
-            string mensagem = "AudioScheduler v1.0.3\n\nDesenvolvido por: Atalias Lô-Amí\n\n" +
+            string mensagem = "AudioScheduler v1.0.5\n\nDesenvolvido por: Atalias Lô-Amí\n\n" +
                            "📱 WhatsApp: (99) 98469-1168\n" +
                            "📷 Instagram: @ataliasloami_\n" +
                            "💬 Discord: ataliasloami\n" +
@@ -270,6 +293,8 @@ namespace AgendadorRadioVisual
                 e.Cancel = true;
                 this.WindowState = FormWindowState.Minimized; 
                 AdicionarLog("Programa ocultado na barra de tarefas.");
+                // Salvar configurações mesmo ao minimizar
+                SalvarConfiguracoesAtuais();
                 return;
             }
 
@@ -354,8 +379,13 @@ namespace AgendadorRadioVisual
                         cmdInserir.ExecuteNonQuery();
                     }
                 }
+                AdicionarLog("Configurações salvas com sucesso no banco de dados.");
             }
-            catch (Exception ex) { Console.WriteLine("Erro ao salvar: " + ex.Message); }
+            catch (Exception ex) 
+            { 
+                AdicionarLog($"ERRO AO SALVAR CONFIGURAÇÕES: {ex.Message}"); 
+                MessageBox.Show($"Erro ao salvar configurações: {ex.Message}", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void CarregarConfiguracoesSalvas()
@@ -1089,16 +1119,20 @@ private void CriarComponentVisual()
                     waveOutSpotify = new WaveOutEvent { DeviceNumber = dispositivoSaidaId };
                     waveOutSpotify.Init(fadeSampleProvider);
 
-                    // Evento de captura de áudio
+                    // Evento de captura de áudio com tratamento de erro
                     waveInSpotify.DataAvailable += (s, e) =>
                     {
-                        lock (travaSpotify)
+                        try
                         {
-                            if (bufferedWaveProviderSpotify != null)
+                            lock (travaSpotify)
                             {
-                                bufferedWaveProviderSpotify.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                                if (bufferedWaveProviderSpotify != null)
+                                {
+                                    bufferedWaveProviderSpotify.AddSamples(e.Buffer, 0, e.BytesRecorded);
+                                }
                             }
                         }
+                        catch { }
                     };
 
                     // Iniciar captura e reprodução
@@ -1112,6 +1146,16 @@ private void CriarComponentVisual()
             catch (Exception ex)
             {
                 AdicionarLog($"ERRO ao iniciar captura: {ex.Message}");
+                // Limpar recursos em caso de erro
+                try
+                {
+                    if (waveInSpotify != null) { waveInSpotify.Dispose(); waveInSpotify = null; }
+                    if (waveOutSpotify != null) { waveOutSpotify.Dispose(); waveOutSpotify = null; }
+                    bufferedWaveProviderSpotify = null;
+                    fadeSampleProvider = null;
+                    spotifyCapturaAtiva = false;
+                }
+                catch { }
             }
         }
 
@@ -1231,8 +1275,28 @@ private void CriarComponentVisual()
         {
             lock (travaAudio)
             {
-                if (dispositivoSaidaAtual != null) { try { dispositivoSaidaAtual.Stop(); dispositivoSaidaAtual.Dispose(); } catch { } dispositivoSaidaAtual = null; }
-                if (arquivoAudioAtual != null) { try { arquivoAudioAtual.Dispose(); } catch { } arquivoAudioAtual = null; }
+                try
+                {
+                    if (dispositivoSaidaAtual != null)
+                    {
+                        if (dispositivoSaidaAtual.PlaybackState == PlaybackState.Playing)
+                            dispositivoSaidaAtual.Stop();
+                        dispositivoSaidaAtual.Dispose();
+                        dispositivoSaidaAtual = null;
+                    }
+                }
+                catch { dispositivoSaidaAtual = null; }
+                
+                try
+                {
+                    if (arquivoAudioAtual != null)
+                    {
+                        arquivoAudioAtual.Dispose();
+                        arquivoAudioAtual = null;
+                    }
+                }
+                catch { arquivoAudioAtual = null; }
+                
                 audioEstaTocando = false;
             }
         }
@@ -1269,9 +1333,25 @@ private void CriarComponentVisual()
                         audioEstaTocando = true; dispositivoSaidaAtual.Play();
                     }
 
+                    // Adicionar timeout de 5 minutos para evitar travamento
+                    DateTime inicioReproducao = DateTime.Now;
+                    TimeSpan timeout = TimeSpan.FromMinutes(5);
+
                     while (true)
                     {
-                        lock (travaAudio) { if (dispositivoSaidaAtual == null || dispositivoSaidaAtual.PlaybackState != PlaybackState.Playing) break; }
+                        lock (travaAudio) 
+                        { 
+                            if (dispositivoSaidaAtual == null || dispositivoSaidaAtual.PlaybackState != PlaybackState.Playing) 
+                                break; 
+                        }
+                        
+                        // Verificar timeout
+                        if (DateTime.Now - inicioReproducao > timeout)
+                        {
+                            this.BeginInvoke(new Action(() => AdicionarLog("AVISO: Timeout de reprodução detectado. Forçando parada.")));
+                            break;
+                        }
+                        
                         System.Threading.Thread.Sleep(100);
                     }
                 }

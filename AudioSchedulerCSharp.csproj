@@ -7,7 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <AssemblyName>AudioScheduler_v1.0.3</AssemblyName>
+    <AssemblyName>AudioScheduler_v1.0.5</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
